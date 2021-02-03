@@ -1,0 +1,63 @@
+{% extends "shop/base.html" %}
+{% block content %}
+
+<h1 class="my-4">Информация о заказе с id:{{ order.id }}</h1>
+<p class="text">Стоимость: {{ order.get_final_total }} ₽</p>
+<p class="text">Дата: {{ order.order_time|date:"d.m.y" }}</p>
+<p class="text">Время: {{ order.order_time|date:"g:i:s" }}</p>
+<p class="text">Адрес доставки: {{ order.address }}</p>
+<p class="text">Оплата {{ order.get_ru_payment }}</p>
+<p class="text">Комментарии к заказу: {{ order.notes }}</p>
+<h2 class="my-4">Товары в заказе</h2>
+    <div class="row">
+
+        <div class="col-md-8">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            <div class="album py-5 bg-light">
+                <div class="container">
+                    {% for item in order.get_order_items %}
+
+                    <div class="card mb-3" style="max-width: 540px;">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <a href="{% url 'shop-product' item.product.id %}"><img
+                                                alt="..." class="card-img" src="{{ item.product.image.url }}"></a>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-7">
+                                                    <a href="{% url 'shop-product' item.product.id %}"><h5 class="card-title">{{ item.product.name }}</h5></a>
+                                                    <p class="card-text">Количество: {{ item.quantity }}</p>
+
+                                                </div>
+                                                <div class="col-md-5">
+                                                    <div class="align-right">
+                                                        {% if item.get_full_cost != item.get_full_final_cost %}
+                                                        <p class="card-text"><small class="text-muted"><del>{{ item.get_full_cost }} ₽</del></small></p>
+                                                        {% endif %}
+                                                        <p class="price">{{ item.get_full_final_cost }} ₽</p>
+                                                        {% if item.quantity > 1 %}
+                                                        <p class="card-text">{{ item.item_cost_final }} x {{ item.quantity }} ₽</p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <!-- SIDEBAR -->
+    </div>
+{% endblock content %}

@@ -1,0 +1,26 @@
+{% extends "shop/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+    <div class="content-section">
+        <div class="media">
+            <div class="media-body">
+                <h2 class="account-heading">{{ user.email }}</h2>
+                {% if user.profile.loyalty_card %}
+                    <p class="text">Уровень карты лояльности: {{ user.profile.loyalty_card }}. Скидка по карте: {{ user.profile.loyalty_card.discount }}%</p>
+                    <a href="{% url 'orders' %}"><p class="text">Прошлые заказы</p></a>
+                {% endif %}
+            </div>
+        </div>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Информация о профиле</legend>
+                {{ u_form|crispy }}
+                {{ p_form|crispy }}
+            </fieldset>
+            <div class="form-group">
+                <button class="btn btn-outline-info" type="submit">Сохранить профиль</button>
+            </div>
+        </form>
+    </div>
+{% endblock content %}

@@ -1,0 +1,116 @@
+{% extends "shop/base.html" %}
+{% block content %}
+
+
+<div class="row">
+    <div class="col">
+        <div class="card" style="width: 40rem;">
+            <img class="card-img" src="{{ object.image.url }}" alt="...">
+        </div>
+    </div>
+    <div class="col">
+        <div class="card" style="width: 20rem;">
+            <div class="card-body">
+                <h1 class="card-title" >{{ object.name }}</h1>
+                <a href="{% url 'shop-category' product.category.id %}"><h4 class="card-subtitle mb-4 text-muted">{{ object.category }}</h4></a>
+                <h5 class="card-text mb-3">{{ object.description }}</h5>
+
+                {% if not object.displayed %}
+
+                {% elif not object.in_stock %}
+                <h3 class="text-left">Нет в наличии</h3>
+                {% elif object.on_sale %}
+                <span class="u-mr-4 c-pdp-price__old" data-sel="new_comparison-span-old_price-10023519-2">{{ object.cost }}</span>
+                <span class="c-pdp-price__discount">-{{ object.discount }}%</span>
+                <h3 class="text-left">{{ object.get_sale_cost }} ₽</h3>
+                {% else %}
+                <h3 class="text-left">{{ object.cost }} ₽</h3>
+                {% endif %}
+
+                {% if product.in_stock and product.displayed %}
+                {% if product.id in products_in_cart %}
+                    <a href="{% url 'cart' %}" class="btn btn-success mb-3">Перейти в корзину</a>
+                {% else %}
+                    <a href="{% url 'add-to-cart' product.id %}" class="btn btn-primary mb-3">Добавить в корзину</a>
+                {% endif %}
+                {% endif %}
+
+                {% if product.displayed %}
+                {% if review_id %}
+                    <a href="{% url 'review-update' prod=object.id pk=review_id.id %}" class="btn btn-secondary mb-1">Изменить отзыв</a>
+                    <a href="{% url 'review-delete' prod=object.id pk=review_id.id %}" class="btn btn-danger">Удалить отзыв</a>
+                {% else %}
+                    <a href="{% url 'review-create' object.id %}" class="btn btn-secondary">Оставить отзыв</a>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<h1>Подробнее о товаре</h1>
+<div class="row">
+    <div class="col-sm-6">
+        <table class="table">
+            <tbody>
+            <tr>
+                <td>Цвет</td>
+                <td>{{ object.color.name }}</td>
+            </tr>
+            {% for f in product_features %}
+            <tr>
+                <td>{{ f.feature_variant.feature.name }}</td>
+                <td>{{ f.feature_variant.name }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<h1>Отзывы</h1>
+{% for review in object.get_reviews %}
+<div class="card mb-4" style="width: 60rem;">
+    <div class="card-body">
+    <h3>{{ review.user }}</h3>
+        {% if review.rating == 5 %}
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        {% elif review.rating == 4 %}
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_empty.png" height="20" vspace="10">
+        {% elif review.rating == 3 %}
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_empty.png" height="20" vspace="10">
+        <img src="/media/star_empty.png" height="20" vspace="10">
+        {% elif review.rating == 2 %}
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_empty.png" height="20" vspace="10">
+        <img src="/media/star_empty.png" height="20" vspace="10">
+        <img src="/media/star_empty.png" height="20" vspace="10">
+        {% elif review.rating == 1 %}
+        <img src="/media/star_filled.png" height="20" vspace="10">
+        <img src="/media/star_empty.png" height="20" vspace="10">
+        <img src="/media/star_empty.png" height="20" vspace="10">
+        <img src="/media/star_empty.png" height="20" vspace="10">
+        <img src="/media/star_empty.png" height="20" vspace="10">
+        {% endif %}
+    <p>Плюсы: {{ review.advantages }}</p>
+    <p>Минусы: {{ review.disadvantages }}</p>
+    <p>Отзыв: {{ review.review }}</p>
+    <p>{{ review.date_posted | date:"d.m.y" }}</p>
+        </div>
+</div>
+{% endfor %}
+{% endblock content %}

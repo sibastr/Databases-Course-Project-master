@@ -1,0 +1,61 @@
+{% extends "shop/base.html" %}
+{% block content %}
+
+<h1 class="my-4">Ваши заказы</h1>
+
+<div class="album py-5 bg-light">
+    <div class="container">
+        <div class="row">
+
+                <table class="table">
+  <thead>
+    <tr>
+      <th scope="col">ID Заказа</th>
+        <th scope="col">Дата</th>
+      <th scope="col">Время</th>
+      <th scope="col">Адрес</th>
+        <th scope="col">Сумма</th>
+        <th scope="col">Способ оплаты</th>
+        <th scope="col">Действия</th>
+    </tr>
+  </thead>
+
+  <tbody>
+  {% for order in orders %}
+    <tr>
+        <td>{{ order.id }}</td>
+        <td>{{ order.order_time|date:"d.m.y" }}</td>
+        <td>{{ order.order_time|date:"g:i:s" }}</td>
+        <td>{{ order.address }}</td>
+        <td>{{ order.get_final_total }} ₽</td>
+        <td>{{ order.get_ru_payment }}</td>
+        <td><a class="btn btn-secondary" href="{% url 'order-detail' order.id %}">Посмотреть</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+        </div>
+    </div>
+</div>
+
+    {% if is_paginated %}
+        {% if page_obj.has_previous %}
+            <a class="btn btn-outline-info mb-4" href="?page=1"><<</a>
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}"><</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">></a>
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">>></a>
+        {% endif %}
+    {% endif %}
+
+{% endblock content %}

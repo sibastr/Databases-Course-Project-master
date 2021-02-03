@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'shop/main.css' %}">
+
+    {% if title %}
+    <title>Django Blog -- {{ title }}</title>
+    {% else %}
+    <title>Django Blog</title>
+    {% endif %}
+</head>
+<body>
+<header class="site-header">
+    <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
+        <div class="container">
+            <a class="navbar-brand mr-4" href="{% url 'shop-home' %}">МАГАЗИН</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle"
+                    aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarToggle">
+                <div class="navbar-nav mr-auto">
+                    <a class="nav-item nav-link" href="{% url 'shop-home' %}">Все товары</a>
+                </div>
+
+                <!-- Navbar Right Side -->
+                <div class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <a class="nav-item nav-link" href="{% url 'cart' %}">Корзина</a>
+                    <a class="nav-item nav-link" href="{% url 'profile' %}">Профиль</a>
+                    <a class="nav-item nav-link" href="{% url 'logout' %}">Выйти</a>
+                    {% else %}
+                    <a class="nav-item nav-link" href="{% url 'login' %}">Войти</a>
+                    <a class="nav-item nav-link" href="{% url 'register' %}">Регистрация</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main role="main" class="container">
+
+    <div class="row">
+        <h1 class="my-4">Все товары</h1>
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+
+
+            {% if is_paginated %}
+
+            {% if page_obj.has_previous %}
+            <a class="btn btn-outline-info mb-4" href="?page=1"><<</a>
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}"><</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">></a>
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">>></a>
+            {% endif %}
+
+            {% endif %}
+
+
+            <div class="album py-5 bg-light">
+                <div class="container">
+                    <div class="row">
+                        {% for product in products %}
+                        <div class="col-sm-4">
+                            <div class="card mb-4" style="width: 14rem;">
+                                <a href="{% url 'shop-product' product.id %}"><img src="{{ product.image.url }}"
+                                                                                   class="card-img-top"
+                                                                                   alt="..."></a>
+                                <div class="card-body">
+                                    <h4><a class="card-title" href="{% url 'shop-product' product.id %}">{{ product.name }}</a></h4>
+                                    <a href="{% url 'shop-category' product.category.id %}"><p class="card-text">{{ product.category.name }}</p></a>
+                                    {% if not product.in_stock %}
+                                    <h4 class="text-left">Нет в наличии</h4>
+                                    {% elif product.on_sale %}
+                                    <span class="u-mr-4 c-pdp-price__old" data-sel="new_comparison-span-old_price-10023519-2">{{ product.cost }}</span>
+
+                                    <span class="c-pdp-price__discount">-{{ product.discount }}%</span>
+                                    <h3 class="text-left">{{ product.get_sale_cost }} ₽</h3>
+                                    {% else %}
+                                    <h3 class="text-left">{{ product.cost }} ₽</h3>
+                                    {% endif %}
+
+                                    {% if product.in_stock %}
+                                    {% if product.id in products_in_cart %}
+                                    <a href="{% url 'cart' %}" class="btn btn-success">Перейти в корзину</a>
+                                    {% else %}
+                                    <a href="{% url 'add-to-cart' product.id %}" class="btn btn-primary">Добавить
+                                        в корзину</a>
+                                    {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+
+        <div class="col-md-4">
+            <h2>Категории:</h2>
+            {% for c in category_list %}
+                <a href="{% url 'shop-category' c.id %}"><h4>{{ c.name }}</h4></a>
+            {% endfor %}
+
+        </div>
+
+            {% if is_paginated %}
+
+            {% if page_obj.has_previous %}
+            <a class="btn btn-outline-info mb-4" href="?page=1"><<</a>
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}"><</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">></a>
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">>></a>
+            {% endif %}
+
+            {% endif %}
+
+
+        </div>
+
+</main>
+
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+</body>
+</html>
+

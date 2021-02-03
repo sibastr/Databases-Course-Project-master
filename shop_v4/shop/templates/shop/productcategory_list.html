@@ -1,0 +1,361 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'shop/main.css' %}">
+
+    {% if title %}
+    <title>Django Blog -- {{ title }}</title>
+    {% else %}
+    <title>Django Blog</title>
+    {% endif %}
+</head>
+<body>
+<header class="site-header">
+    <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
+        <div class="container">
+            <a class="navbar-brand mr-4" href="{% url 'shop-home' %}">МАГАЗИН</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle"
+                    aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarToggle">
+                <div class="navbar-nav mr-auto">
+                    <a class="nav-item nav-link" href="{% url 'shop-home' %}">Все товары</a>
+                </div>
+
+                <!-- Navbar Right Side -->
+                <div class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <a class="nav-item nav-link" href="{% url 'cart' %}">Корзина</a>
+                    <a class="nav-item nav-link" href="{% url 'profile' %}">Профиль</a>
+                    <a class="nav-item nav-link" href="{% url 'logout' %}">Выйти</a>
+                    {% else %}
+                    <a class="nav-item nav-link" href="{% url 'login' %}">Войти</a>
+                    <a class="nav-item nav-link" href="{% url 'register' %}">Регистрация</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main role="main" class="container">
+
+    <div class="row">
+        <h1 class="my-4">{{ category.name }}</h1>
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+
+
+            {% if is_paginated %}
+
+            {% if page_obj.has_previous %}
+            <a class="btn btn-outline-info mb-4" href="?page=1"><<</a>
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}"><</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">></a>
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">>></a>
+            {% endif %}
+
+            {% endif %}
+
+
+            <div class="album py-5 bg-light">
+                <div class="container">
+                    {% if filtered_products|length != 0 %}
+                    {% if filtered_products|length == 1 %}
+                    <h5>Найден 1 товар</h5>
+                    {% elif filtered_products|length  > 4 %}
+                    <h5>Найдено {{ filtered_products|length }} товаров</h5>
+                    {% else %}
+                    <h5>Найдено {{ filtered_products|length }} товара</h5>
+                    {% endif %}
+                    <div class="row">
+                        {% for product in filtered_products %}
+                        <div class="col-sm-4">
+                            <div class="card mb-4" style="width: 14rem;">
+                                <a href="{% url 'shop-product' product.id %}"><img src="{{ product.image.url }}"
+                                                                                   class="card-img-top"
+                                                                                   alt="..."></a>
+                                <div class="card-body">
+                                    <h4><a class="card-title" href="{% url 'shop-product' product.id %}">{{ product.name }}</a></h4>
+                                    <p class="card-text">{{ product.category.name }}</p>
+                                    {% if not product.in_stock %}
+                                    <h4 class="text-left">Нет в наличии</h4>
+                                    {% elif product.on_sale %}
+                                    <span class="u-mr-4 c-pdp-price__old" data-sel="new_comparison-span-old_price-10023519-2">{{ product.cost }}</span>
+
+                                    <span class="c-pdp-price__discount">-{{ product.discount }}%</span>
+                                    <h3 class="text-left">{{ product.get_sale_cost }} ₽</h3>
+                                    {% else %}
+                                    <h3 class="text-left">{{ product.cost }} ₽</h3>
+                                    {% endif %}
+
+                                    {% if product.in_stock %}
+                                    {% if product.id in products_in_cart %}
+                                    <a href="{% url 'cart' %}" class="btn btn-success">Перейти в корзину</a>
+                                    {% else %}
+                                    <a href="{% url 'add-to-cart' product.id %}" class="btn btn-primary">Добавить
+                                        в корзину</a>
+                                    {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <h5>Товары с заданными параметрами не найдены</h5>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+
+
+        <div class="col-md-4">
+        <form method="GET" action=".">
+            <h4 class="my-4">Сортировать по</h4>
+            <select id="sort" class="form-control" name="sort">
+                {% if marked_sort == '2' %}
+                <option value="1">Названию</option>
+                <option value="2" selected>Цене возрастающей</option>
+                <option value="3">Цене убывающей</option>
+                {% elif marked_sort == '3' %}
+                <option value="1">Названию</option>
+                <option value="2">Цене возрастающей</option>
+                <option value="3" selected>Цене убывающей</option>
+                {% else %}
+                <option value="1" selected>Названию</option>
+                <option value="2">Цене возрастающей</option>
+                <option value="3">Цене убывающей</option>
+                {% endif %}
+            </select>
+
+            <h4 class="my-4">Фильтры</h4>
+            <h5 class="my-4">В наличии</h5>
+            <div class="form-group">
+                <div class="form-check">
+                    {% if marked_stock == 'all' %}
+                    <input class="form-check-input" type="radio" id="rb_st_all" name="rb_st" value="all" checked>
+                    {% else %}
+                    <input class="form-check-input" type="radio" id="rb_st_all" name="rb_st" value="all">
+                    {% endif %}
+                    <label class="form-check-label" for="rb_st_all">
+                        Любые
+                    </label>
+                </div>
+                <div class="form-check">
+                    {% if marked_stock == 'yes' %}
+                    <input class="form-check-input" type="radio" id="rb_st_yes" name="rb_st" value="yes" checked>
+                    {% else %}
+                    <input class="form-check-input" type="radio" id="rb_st_yes" name="rb_st" value="yes">
+                    {% endif %}
+                    <label class="form-check-label" for="rb_st_yes">
+                        Да
+                    </label>
+                </div>
+                <div class="form-check">
+                    {% if marked_stock == 'no' %}
+                    <input class="form-check-input" type="radio" id="rb_st_no" name="rb_st" value="no" checked>
+                    {% else %}
+                    <input class="form-check-input" type="radio" id="rb_st_no" name="rb_st" value="no">
+                    {% endif %}
+                    <label class="form-check-label" for="rb_st_no">
+                        Нет
+                    </label>
+                </div>
+            </div>
+
+            <h5 class="my-4">Со скидкой</h5>
+            <div class="form-group">
+                <div class="form-check">
+                    {% if marked_sale == 'all' %}
+                    <input class="form-check-input" type="radio" id="rb_sl_all" name="rb_sl" value="all" checked>
+                    {% else %}
+                    <input class="form-check-input" type="radio" id="rb_sl_all" name="rb_sl" value="all">
+                    {% endif %}
+                    <label class="form-check-label" for="rb_sl_all">
+                        Любые
+                    </label>
+                </div>
+                <div class="form-check">
+                    {% if marked_sale == 'yes' %}
+                    <input class="form-check-input" type="radio" id="rb_sl_yes" name="rb_sl" value="yes" checked>
+                    {% else %}
+                    <input class="form-check-input" type="radio" id="rb_sl_yes" name="rb_sl" value="yes">
+                    {% endif %}
+                    <label class="form-check-label" for="rb_sl_yes">
+                        Да
+                    </label>
+                </div>
+                <div class="form-check">
+                    {% if marked_sale == 'no' %}
+                    <input class="form-check-input" type="radio" id="rb_sl_no" name="rb_sl" value="no" checked>
+                    {% else %}
+                    <input class="form-check-input" type="radio" id="rb_sl_no" name="rb_sl" value="no">
+                    {% endif %}
+                    <label class="form-check-label" for="rb_sl_no">
+                        Нет
+                    </label>
+                </div>
+            </div>
+
+            <h5 class="my-4">Цвет</h5>
+            <div class="form-group">
+                {% for color in colors %}
+                <div class="form-check">
+                    {% if color.id in marked_colors %}
+                    <input class="form-check-input" type="checkbox" id="clr_{{ color.id }}" name="clr_{{ color.id }}" checked>
+                    <label class="form-check-label" for="clr_{{ color.id }}">
+                        {{ color.name }}
+                    </label>
+                    {% else %}
+                    <input class="form-check-input" type="checkbox" id="clr_{{ color.id }}" name="clr_{{ color.id }}">
+                    <label class="form-check-label" for="clr_{{ color.id }}">
+                        {{ color.name }}
+                    </label>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+
+            {% for feature in category.get_features %}
+            <h5 class="my-4">{{ feature.name }}</h5>
+            {% if feature.type == 'checkbox' %}
+            <div class="form-group">
+            {% for variant in feature.get_variants %}
+
+                <div class="form-check">
+                    {% if variant.id in marked_filters %}
+                    <input class="form-check-input" type="checkbox" id="ch_{{ variant.id }}" name="ch_{{ variant.id }}" checked>
+                    <label class="form-check-label" for="ch_{{ variant.id }}">
+                        {{ variant.name }}
+                    </label>
+                    {% else %}
+                    <input class="form-check-input" type="checkbox" id="ch_{{ variant.id }}" name="ch_{{ variant.id }}">
+                    <label class="form-check-label" for="ch_{{ variant.id }}">
+                        {{ variant.name }}
+                    </label>
+                    {% endif %}
+                </div>
+
+            {% endfor %}
+            </div>
+
+            {% elif feature.type == 'radiobutton' %}
+            <div class="form-group">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="rb_{{ variant.id }}" name="rb_{{ feature.id }}" value="no" checked>
+                    <label class="form-check-label" for="rb_{{ variant.id }}">
+                        Любые
+                    </label>
+                </div>
+
+            {% for variant in feature.get_variants %}
+                <div class="form-check">
+                    {% if variant.id in marked_filters %}
+                    <input class="form-check-input" type="radio" id="rb_{{ variant.id }}" name="rb_{{ feature.id }}" value="{{ variant.id }}" checked>
+                    <label class="form-check-label" for="rb_{{ variant.id }}">
+                        {{ variant.name }}
+                    </label>
+                    {% else %}
+                    <input class="form-check-input" type="radio" id="rb_{{ variant.id }}" name="rb_{{ feature.id }}" value="{{ variant.id }}">
+                    <label class="form-check-label" for="rb_{{ variant.id }}">
+                        {{ variant.name }}
+                    </label>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            </div>
+            {% endif %}
+
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary">Применить</button>
+      </form>
+
+
+
+
+        </div>
+
+
+
+
+
+
+
+
+            {% if is_paginated %}
+
+            {% if page_obj.has_previous %}
+            <a class="btn btn-outline-info mb-4" href="?page=1"><<</a>
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}"><</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">></a>
+            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">>></a>
+            {% endif %}
+
+            {% endif %}
+
+
+        </div>
+</main>
+
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+</body>
+</html>
+
